@@ -7,7 +7,7 @@ myst:
 # User Guide
 
 This is the user guide
-for the [Hypermodern Python Cookiecutter],
+for the [uv hypermodern python cookiecutter],
 a Python template based on the [Hypermodern Python] article series.
 
 If you're in a hurry, check out the [quickstart guide](quickstart)
@@ -19,7 +19,7 @@ and the [tutorials](tutorials).
 
 The {{ HPC }} is a general-purpose template for Python libraries and applications,
 released under the [MIT license]
-and hosted on [GitHub][hypermodern python cookiecutter].
+and hosted on [GitHub][uv hypermodern python cookiecutter].
 
 The main objective of this project template is to
 enable current best practices
@@ -37,9 +37,10 @@ a project scaffolding tool built on top of the [Jinja] template engine.
 
 The project template is centered around the following tools:
 
-- [Poetry] for packaging and dependency management
+- [uv] for packaging and dependency management
 - [Nox] for automation of checks and other development tasks
 - [GitHub Actions] for continuous integration and delivery
+- [Ruff] for static code analysis and linting
 
 (features)=
 
@@ -49,9 +50,9 @@ Here is a detailed list of features for this Python template:
 
 ```{eval-rst}
 .. include:: ../README.md
-   :parser: myst_parser.sphinx_
-   :start-after: <!-- features-begin -->
-   :end-before: <!-- features-end -->
+  :parser: myst_parser.sphinx_
+  :start-after: <!-- features-begin -->
+  :end-before: <!-- features-end -->
 
 ```
 
@@ -59,7 +60,7 @@ Here is a detailed list of features for this Python template:
 
 The {{ HPC }} uses [Calendar Versioning] with a `YYYY.MM.DD` versioning scheme.
 
-The current stable release is [2022.6.3].
+The current stable release is [2024.11.23].
 
 (installation)=
 
@@ -152,7 +153,7 @@ you can make these Python versions accessible in the project directory,
 using the following command:
 
 ```console
-$ pyenv local 3.12.9 3.11.9 3.10.14 3.9.19 3.8.19 
+$ pyenv local 3.12.9 3.11.9 3.10.14 3.9.19 3.8.19
 ```
 
 The first version listed is the one used when you type plain `python`.
@@ -173,9 +174,8 @@ use [pip install] with the `--user` option instead.
 You need four tools to use this template:
 
 - [Cookiecutter] to create projects from the template,
-- [Poetry] to manage packaging and dependencies
+- [uv] to manage packaging and dependencies
 - [Nox] to automate checks and other tasks
-- [nox-poetry] for using Poetry in Nox sessions
 
 Install [Cookiecutter] using pipx:
 
@@ -183,17 +183,16 @@ Install [Cookiecutter] using pipx:
 $ pipx install cookiecutter
 ```
 
-Install [Poetry] by downloading and running [install-poetry.py]:
+Install [uv] by downloading and running the install script:
 
 ```console
-$ python install-poetry.py
+$ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Install [Nox] and [nox-poetry] using pipx:
+Install [Nox] using pipx:
 
 ```console
 $ pipx install nox
-$ pipx inject nox nox-poetry
 ```
 
 Remember to upgrade these tools regularly:
@@ -201,7 +200,7 @@ Remember to upgrade these tools regularly:
 ```console
 $ pipx upgrade cookiecutter
 $ pipx upgrade --include-injected nox
-$ poetry self update
+$ uv upgrade
 ```
 
 ## Project creation
@@ -211,11 +210,11 @@ $ poetry self update
 ### Creating a project
 
 Create a project from this template
-by pointing Cookiecutter to its [GitHub repository][hypermodern python cookiecutter].
-Use the `--checkout` option with the [current stable release][2022.6.3]:
+by pointing Cookiecutter to its [GitHub repository][uv hypermodern python cookiecutter].
+Use the `--checkout` option with the [current stable release][2024.11.23]:
 
 ```console
-$ cookiecutter gh:cjolowicz/cookiecutter-hypermodern-python --checkout="2022.6.3"
+$ cookiecutter gh:bosd/cookiecutter-uv-hypermodern-python --checkout="2024.11.23"
 ```
 
 Cookiecutter downloads the template,
@@ -446,12 +445,8 @@ and links each file to a section with more details.
 
 - - `.cookiecutter.json`
   - [Project variables](creating-a-project)
-- - `.darglint`
-  - Configuration for [darglint](darglint-integration)
 - - `.github/dependabot.yml`
   - Configuration for [Dependabot](dependabot-integration)
-- - `.flake8`
-  - Configuration for [Flake8](the-flake8-hook)
 - - `.gitattributes`
   - [Git attributes][.gitattributes]
 - - `.gitignore`
@@ -471,16 +466,15 @@ and links each file to a section with more details.
 - - `noxfile.py`
   - Configuration for [Nox](using-nox)
 - - `pyproject.toml`
-  - Configuration for [Poetry](using-poetry),
+  - Configuration for [uv](using-uv),
     [Coverage.py](the-coverage-session),
-    [isort](the-isort-hook),
     and [mypy](type-checking-with-mypy)
 
 :::
 
 The `pyproject.toml` file is described in more detail [below](the-pyproject-toml-file).
 
-[Dependencies](managing-dependencies) are managed by [Poetry]
+[Dependencies](managing-dependencies) are managed by [uv]
 and declared in the [pyproject.toml](the-pyproject-toml-file) file.
 The table below lists some additional files with pinned dependencies.
 Follow the links for more details on these.
@@ -488,8 +482,6 @@ Follow the links for more details on these.
 :::{list-table} Dependency files
 :widths: auto
 
-- - `poetry.lock`
-  - [Poetry lock file](the-lock-file)
 - - `docs/requirements.txt`
   - Requirements file for [Read the Docs](read-the-docs-integration)
 - - `.github/workflows/constraints.txt`
@@ -530,7 +522,7 @@ src
   This allows you to invoke the command-line interface using only the project name:
 
   ```console
-  $ poetry run <project>  # during development
+  $ uv run <project>  # during development
   $ <project>             # after installation
   ```
 
@@ -679,12 +671,12 @@ in the root directory of the project,
 and named `pyproject.toml`.
 It uses the [TOML] configuration file format,
 and contains two sections---_tables_ in TOML parlance---,
-specified in [PEP 517][pep 517] and [518][pep 518]:
+specified in [PEP 517][pep 517] and [518][pep 518]:
 
 - The `build-system` table
   declares the requirements and the entry point
   used to build a distribution package for the project.
-  This template uses [Poetry] as the build system.
+  This template uses [uv] as the build system.
 - The `tool` table contains sub-tables
   where tools can store configuration under their [PyPI] name.
 
@@ -693,20 +685,20 @@ specified in [PEP 517][pep 517] and [518][pep 518]:
 
 - - `tool.coverage`
   - Configuration for [Coverage.py]
-- - `tool.isort`
-  - Configuration for [isort]
 - - `tool.mypy`
   - Configuration for [mypy]
-- - `tool.poetry`
-  - Configuration for [Poetry]
+- - `tool.uv`
+  - Configuration for [uv]
+- - `tool.ruff`
+  - Configuration for [Ruff]
 
 :::
 
-The `tool.poetry` table
+The `tool.uv` table
 contains the metadata for your package,
 such as its name, version, and authors,
 as well as the list of dependencies for the package.
-Please refer to the [Poetry documentation][pyproject.toml]
+Please refer to the [uv docoumentation][uv docs]
 for a detailed description of each configuration key.
 
 (version-constraints)=
@@ -717,10 +709,10 @@ for a detailed description of each configuration key.
 This project template omits upper bounds from all version constraints.
 
 You are encouraged to manually remove upper bounds
-for dependencies you add to your project using Poetry:
+for dependencies you add to your project:
 
 1. Replace `^1.2.3` with `>=1.2.3` in `pyproject.toml`
-2. Run `poetry lock --no-update` to update `poetry.lock`
+2. Run `uv pip install` to update the environment
 
 :::
 
@@ -749,13 +741,13 @@ and they come in two types:
 :::
 
 For every dependency added to your project,
-Poetry writes a version constraint to `pyproject.toml`.
+uv uses version constraints specified in `pyproject.toml`.
 Dependencies are kept in two TOML tables:
 
-- `tool.poetry.dependencies`---for core dependencies
-- `tool.poetry.dev-dependencies`---for development dependencies
+- `tool.uv.dependencies`---for core dependencies
+- `tool.uv.dev-dependencies`---for development dependencies
 
-By default, version constraints added by Poetry have both a lower and an upper bound:
+By default, version constraints can have both a lower and an upper bound:
 
 - The lower bound requires users of your package to have at least the version
   that was current when you added the dependency.
@@ -768,10 +760,9 @@ once a project has reached version 1.0.0.
 A major release is one that increments the major version
 (the first component of the version identifier).
 An example for such a version constraint would be `^1.2.3`,
-which is a Poetry-specific shorthand equivalent to `>= 1.2.3, < 2`.
+which is a shorthand equivalent to `>= 1.2.3, < 2`.
 
 This project template omits upper bounds from all version constraints,
-in a conscious departure from Poetry's defaults.
 There are two separate reasons for removing version caps,
 one principled, the other pragmatic:
 
@@ -780,13 +771,13 @@ one principled, the other pragmatic:
 
 The first point is treated in detail in the following articles:
 
-- [Should You Use Upper Bound Version Constraints?][schreiner constraints] and [Poetry Versions][schreiner poetry] by Henry Schreiner
+- [Should You Use Upper Bound Version Constraints?][schreiner constraints] by Henry Schreiner
 - [Semantic Versioning Will Not Save You][schlawack semantic] by Hynek Schlawack
 - [Version numbers: how to use them?][gabor version] by Bernát Gábor
 - [Why I don't like SemVer anymore][cannon semver] by Brett Cannon
 
 The second point is ultimately due to the fact that
-every updated version constraint changes a hashsum in the `poetry.lock` file.
+every updated version constraint changes a hashsum in the lock file.
 This means that PRs updating version constraints will _always_ conflict with each other.
 
 :::{note}
@@ -798,17 +789,17 @@ where only the lock file is ever updated, not the version constraints.
 Omitting version caps makes the lockfile-only strategy a viable alternative.
 :::
 
-Poetry will still add `^1.2.3`-style version constraints whenever you add a dependency.
-You should edit the version constraint in `pyproject.toml`,
+uv will add version constraints whenever you add a dependency.
+You should edit the version constraint in pyproject.toml,
 replacing `^1.2.3` with `>=1.2.3` to remove the upper bound.
-Then update the lock file by invoking `poetry lock --no-update`.
+Then update the environment by invoking uv pip install.
 
 (the-lock-file)=
 
 ### The lock file
 
-Poetry records the exact version of each direct and indirect dependency
-in its lock file, named `poetry.lock` and located in the root directory of the project.
+uv records the exact version of each direct and indirect dependency
+in its lock file, named project.lock and located in the root directory of the project.
 The lock file does not affect users of the package,
 because its contents are not included in distribution packages.
 
@@ -834,32 +825,16 @@ See the table below for an overview of the dependencies of generated projects:
 :::{list-table} Dependencies
 :widths: auto
 
-- - [black]
-  - The uncompromising code formatter.
 - - [click]
   - Composable command line interface toolkit
 - - [coverage][coverage.py]
   - Code coverage measurement for Python
-- - [darglint]
-  - A utility for ensuring Google-style docstrings stay up to date with the source code.
-- - [flake8]
-  - the modular source code checker: pep8 pyflakes and co
-- - [flake8-bandit]
-  - Automated security testing with bandit and flake8.
-- - [flake8-bugbear]
-  - A plugin for flake8 finding likely bugs and design problems in your program.
-- - [flake8-docstrings]
-  - Extension for flake8 which uses pydocstyle to check docstrings
-- - [flake8-rst-docstrings]
-  - Python docstring reStructuredText (RST) validator
+- - [pydoclint]
+  - A utility for ensuring docstrings stay up to date with the source code.
 - - [furo]
   - A clean customisable Sphinx documentation theme.
-- - [isort]
-  - A Python utility / library to sort Python imports.
 - - [mypy]
   - Optional static typing for Python
-- - [pep8-naming]
-  - Check PEP-8 naming conventions, plugin for flake8
 - - [pre-commit]
   - A framework for managing and maintaining multi-language pre-commit hooks.
 - - [pre-commit-hooks]
@@ -868,8 +843,6 @@ See the table below for an overview of the dependencies of generated projects:
   - Pygments is a syntax highlighting package written in Python.
 - - [pytest]
   - pytest: simple powerful testing with Python
-- - [pyupgrade]
-  - A tool to automatically upgrade syntax for newer versions.
 - - [safety]
   - Checks installed dependencies for known vulnerabilities.
 - - [sphinx]
@@ -885,60 +858,60 @@ See the table below for an overview of the dependencies of generated projects:
 
 :::
 
-(using-poetry)=
+(using-uv)=
 
-## Using Poetry
+## Using uv
 
-[Poetry] manages packaging and dependencies for Python projects.
+[uv] manages packaging and dependencies for Python projects.
 
 (managing-dependencies)=
 
 ### Managing dependencies
 
-Use the command [poetry show] to
+Use the command [uv pip list] to
 see the full list of direct and indirect dependencies of your package:
 
 ```console
-$ poetry show
+$ uv pip list
 ```
 
-Use the command [poetry add] to add a dependency for your package:
+Use the command [uv pop install] to add a dependency for your package:
 
 ```console
-$ poetry add foobar        # for core dependencies
-$ poetry add --dev foobar  # for development dependencies
+$ uv pip install foobar        # for core dependencies
+$ uv pip install --dev foobar  # for development dependencies
 ```
 
 :::{important}
-It is recommended to remove the upper bound from the version constraint added by Poetry:
+It is recommended to remove the upper bound from the version constraint:
 
 1. Edit `pyproject.toml` to replace `^1.2.3` with `>=1.2.3` in the dependency entry
-2. Update `poetry.lock` using the command `poetry lock --no-update`
+2. Update the environment using the command `uv pip install`
 
 See [Version constraints](version-constraints) for more details.
 :::
 
-Use the command [poetry remove] to remove a dependency from your package:
+Use the command [uv pip uninstall] to remove a dependency from your package:
 
 ```console
-$ poetry remove foobar
+$ uv pip uninstall foobar
 ```
 
-Use the command [poetry update] to upgrade the dependency to a new release:
+Use the command [uv pip install] to upgrade the dependency to a new release:
 
 ```console
-$ poetry update foobar
+$ uv pip install --upgrade foobar
 ```
 
 :::{note}
 Dependencies in the {{ HPC }} are managed by [Dependabot](dependabot-integration).
 When newer versions of dependencies become available,
-Dependabot updates the `poetry.lock` file and submits a pull request.
+Dependabot updates the environment and submits a pull request.
 :::
 
 ### Installing the package for development
 
-Poetry manages a virtual environment for your project,
+uv manages a virtual environment for your project,
 which contains your package, its core dependencies, and the development dependencies.
 All dependencies are kept at the versions specified by the lock file.
 
@@ -953,11 +926,11 @@ or other projects you're working on.
 :::
 
 You can install your package and its dependencies
-into Poetry's virtual environment
-using the command [poetry install].
+into the uv environment
+using the command [uv pip install].
 
 ```console
-$ poetry install
+$ uv pip install
 ```
 
 This command performs a so-called [editable install] of your package:
@@ -975,65 +948,52 @@ which satisfies the Python versions supported by your project.
 ### Managing environments
 
 You can create environments explicitly
-with the [poetry env] command,
+with the [uv venv create] command,
 specifying the desired Python version.
 This allows you to create an environment
 for every Python version supported by your project,
 and easily switch between them:
 
 ```console
-$ poetry env use 3.8
-$ poetry env use 3.9
-$ poetry env use 3.10
-$ poetry env use 3.11
-$ poetry env use 3.12
+$ uv venv create -p 3.8 py38
+$ uv venv create -p 3.9 py39
+$ uv venv create -p 3.10 py310
+$ uv venv create -p 3.11 py311
+$ uv venv create -p 3.12 py312
 ```
 
-Only one Poetry environment can be active at any time.
-Note that `3.12` comes last,
-to ensure that the current Python release is the active environment.
-Install your package with `poetry install` into each environment after creating it.
-
-Use the command `poetry env list` to list the available environments:
+You can then activate the desired environment using `uv venv activate`:
 
 ```console
-$ poetry env list
+$ uv venv activate py38
 ```
 
-Use the command `poetry env remove` to remove an environment:
-
-```console
-$ poetry env remove <version>
-```
-
-Use the command `poetry env info` to show information about the active environment:
-
-```console
-$ poetry env info
-```
+Multiple uv environments can be active at any time.
+Create an environment for each Python version supported by your project.
+Install your package with uv pip install into each environment after creating it.
 
 ### Running commands
 
 You can run an interactive Python session inside the active environment
-using the command [poetry run]:
+using the command [uv run]:
 
 ```console
-$ poetry run python
+$ uv run python
 ```
 
 The same command allows you to invoke the command-line interface of your project:
 
 ```console
-$ poetry run <project>
+$ uv run <project>
 ```
 
 You can also run developer tools, such as [pytest]:
 
 ```console
-$ poetry run pytest
+$ uv run pytest
 ```
 
-While it is handy to have developer tools available in the Poetry environment,
+While it is handy to have developer tools available in the uv environment,
 it is usually recommended to run these using Nox,
 as described in the section [Using Nox](using-nox).
 
@@ -1050,11 +1010,11 @@ see the section [The Release workflow](the-release-workflow).
 This section gives a short overview of
 how you can build and distribute your package
 from the command line,
-using the following Poetry commands:
+using the following uv commands:
 
 ```console
-$ poetry build
-$ poetry publish
+$ uv build
+$ uv publish
 ```
 
 Building the package is done with the [python build] command,
@@ -1074,19 +1034,19 @@ the official Python package registry.
 ### Installing the package
 
 Once your package is on PyPI,
-others can install it with [pip], [pipx], or Poetry:
+others can install it with [pip], [pipx], or uv:
 
 ```console
 $ pip install <project>
 $ pipx install <project>
-$ poetry add <project>
+$ uv pip install <project>
 ```
 
 While [pip] is the workhorse of the Python packaging ecosystem,
 you should use higher-level tools to install your package:
 
 - If the package is an application, install it with [pipx].
-- If the package is a library, install it with [poetry add] in other projects.
+- If the package is a library, install it with [uv pip install] in other projects.
 
 The primary benefit of these installation methods is that
 your package is installed into an isolated environment,
@@ -1096,7 +1056,7 @@ This way,
 applications can use specific versions of their direct and indirect dependencies,
 without getting in each other's way.
 
-If the other project is not managed by Poetry,
+If the other project is not managed by uv,
 use whatever package manager the other project uses.
 You can always install your project into a virtual environment with plain [pip].
 
@@ -1114,7 +1074,7 @@ named `noxfile.py` and located in the project directory.
 They consist of a virtual environment
 and a set of commands to run in that environment.
 
-While Poetry environments allow you to
+While uv environments allow you to
 interact with your package during development,
 Nox environments are used to run developer tools
 in a reliable and repeatable way across Python versions.
@@ -1320,8 +1280,8 @@ $ nox --session=pre-commit -- install
 
 [Safety] checks the dependencies of your project for known security vulnerabilities,
 using a curated database of insecure Python packages.
-The {{ HPC }} uses the [poetry export] command
-to convert Poetry's lock file to a [requirements file],
+The {{ HPC }} uses the [uv requirements] command
+to generate a [requirements file],
 for consumption by Safety.
 
 Run [Safety] using the `safety` session:
@@ -1348,7 +1308,7 @@ $ nox --session=tests
 The tests session runs the test suite against the installed code.
 More specifically, the session builds a wheel from your project and
 installs it into the Nox environment,
-with dependencies pinned as specified by Poetry's lock file.
+with dependencies pinned as specified by uv's lock file.
 
 You can also run the test suite with a specific Python version.
 For example, the following command runs the test suite
@@ -1550,18 +1510,18 @@ $ nox --session=pre-commit -- autoupdate
 
 :::{note}
 This section provides some background information about
-how this project template integrates pre-commit with Poetry and Nox.
+how this project template integrates pre-commit with uv and Nox.
 You can safely skip this section.
 :::
 
 Python-language hooks in the {{ HPC }} are not managed by pre-commit.
-Instead, they are tracked as development dependencies in Poetry,
+Instead, they are tracked as development dependencies in uv,
 and installed into the Nox session alongside pre-commit itself.
-As development dependencies, they are also present in the Poetry environment.
+As development dependencies, they are also present in the uv environment.
 
 This approach has some advantages:
 
-- All project dependencies are managed by Poetry.
+- All project dependencies are managed by uv.
 - Hooks receive automatic upgrades from Dependabot.
 - Nox can serve as a single entry point for all checks.
 - Additional hook dependencies can be upgraded by a dependency manager.
@@ -1569,7 +1529,7 @@ This approach has some advantages:
   By contrast, `pre-commit autoupdate` does not include additional dependencies.
 - Dependencies of dependencies (_subdependencies_) can be locked automatically,
   making checks more repeatable and deterministic.
-- Linters and formatters are available in the Poetry environment,
+- Linters and formatters are available in the uv environment,
   which is useful for editor integration.
 
 There are also some drawbacks to this technique:
@@ -1586,7 +1546,7 @@ There are also some drawbacks to this technique:
 You can always opt out of this integration method,
 by removing the `repo: local` section from the configuration file,
 and adding the official pre-commit hooks instead.
-Don't forget to remove the hooks from Poetry's dependencies and from the Nox session.
+Don't forget to remove the hooks from uv dependencies and from the Nox session.
 
 :::{note}
 Python-language hooks in the {{ HPC }} are defined as [system hooks][pre-commit system hooks].
@@ -1618,23 +1578,23 @@ Add the following section to your `pre-commit-config.yaml`, under `repos`:
 ```
 
 While this technique also works for Python-language hooks,
-it is recommended to integrate Python hooks with Nox and Poetry,
+it is recommended to integrate Python hooks with Nox and Pouvetry,
 as shown in the next section.
 
 ### Adding a Python-language hook
 
 Adding a Python-language hook to your project takes three steps:
 
-- Add the hook as a Poetry development dependency.
+- Add the hook as a uv development dependency.
 - Install the hook in the Nox session for pre-commit.
 - Add the hook to `pre-commit-config.yaml`.
 
 For example, consider a linter named `awesome-linter`.
 
-First, use Poetry to add the linter to your development dependencies:
+First, use uv to add the linter to your development dependencies:
 
 ```console
-$ poetry add --dev awesome-linter
+$ uv pop install --dev awesome-linter
 ```
 
 Next, update `noxfile.py` to add the linter to the pre-commit session:
@@ -1681,7 +1641,7 @@ validating changes staged for a commit.
 
 Requiring changes to be staged allows for a nice property:
 Many pre-commit hooks support fixing offending lines automatically,
-for example `black`, `prettier`, and `isort`.
+for example `prettier`.
 When this happens,
 your original changes are in the staging area,
 while the fixes are in the work tree.
@@ -1690,8 +1650,8 @@ before committing again.
 
 If you want to run linters or formatters on modified files,
 and you do not want to stage the modifications just yet,
-you can also invoke the tools via Poetry instead.
-For example, use `poetry run flake8 <file>` to lint a modified file with Flake8.
+you can also invoke the tools via uv instead.
+For example, use `uv run ruff <file>` to lint a modified file with Ruff.
 
 ### Overview of pre-commit hooks
 
@@ -1700,16 +1660,8 @@ The {{ HPC }} comes with a pre-commit configuration consisting of the following 
 :::{list-table} pre-commit hooks
 :widths: auto
 
-- - [black]
-  - Run the [Black] code formatter
-- - [flake8]
-  - Run the [Flake8] linter
-- - [isort]
-  - Rewrite source code to sort Python imports
 - - [prettier]
   - Run the [Prettier] code formatter
-- - [pyupgrade]
-  - Upgrade syntax to newer versions of Python
 - - [check-added-large-files]
   - Prevent giant files from being committed
 - - [check-toml]
@@ -1720,249 +1672,65 @@ The {{ HPC }} comes with a pre-commit configuration consisting of the following 
   - Ensure files are terminated by a single newline
 - - [trailing-whitespace]
   - Ensure lines do not contain trailing whitespace
+- - [ruff]
+  - Run the [Ruff] linter and code formatter
 
 :::
-
-### The Black hook
-
-[Black] is the uncompromising Python code formatter.
-One of its greatest features is its lack of configurability.
-Blackened code looks the same regardless of the project you're reading.
 
 ### The Prettier hook
 
 [Prettier] is an opinionated code formatter for many languages,
 including YAML, Markdown, and JavaScript.
-Like Black, it has few options,
+Like Ruff, it has few options,
 and the {{ HPC }} uses none of them.
 
-(the-flake8-hook)=
+## Linting with Ruff
 
-### The Flake8 hook
+[Ruff] is an extremely fast Python linter, written in Rust. It supports many rules from Flake8, isort, pyupgrade, and other tools, effectively consolidating all of your linting needs in one place. The {{ HPC }} integrates Ruff via a [pre-commit] hook, ensuring your code is consistently checked before each commit.
 
-[Flake8] is an extensible linter framework for Python.
-For more details, see the section [Linting with Flake8](linting-with-flake8).
+### Configuring Ruff
 
-(the-isort-hook)=
+Ruff's behavior is controlled by the `pyproject.toml` file located in the project directory. You'll find the configuration under the `[tool.ruff]` section. Here's a breakdown of key settings and how to customize them:
 
-### The isort hook
+**1. Selecting Rules:**
 
-[isort] reorders imports in your Python code.
-Imports are separated into three sections,
-as recommended by [PEP 8][pep 8]: standard library, third party, first party.
-There are two additional sections,
-one at the top for [future imports],
-the other at the bottom for [relative imports].
-Within each section, `from` imports follow normal imports.
-Imports are then sorted alphabetically.
+Ruff offers a comprehensive set of rules, categorized by functionality (e.g., errors, style, complexity, security). You can enable or disable specific rules, or even define your own custom rules. For example, to enable the `E501` rule (line too long) with a line length of 120 characters:
 
-The {{ HPC }} activates the [Black profile][isort black profile] for compatibility with the Black code formatter.
-Furthermore, the [force_single_line][isort force_single_line] setting is enabled.
-This splits imports onto separate lines to avoid merge conflicts.
-Finally, two blank lines are enforced after imports for consistency,
-via the [lines_after_imports][isort lines_after_imports] setting.
-
-### The pyupgrade hook
-
-[pyupgrade] upgrades your source code
-to newer versions of the Python language and standard library.
-The tool analyzes the [abstract syntax tree] of the modules in your project,
-replacing deprecated or legacy usages with modern idioms.
-
-The minimum supported Python version is declared in the relevant section of `.pre-commit-config.yaml`.
-You should change this setting whenever you drop support for an old version of Python.
-
-### Hooks from pre-commit-hooks
-
-The pre-commit configuration also includes several smaller hooks
-from the [pre-commit-hooks] repository.
-
-(linting-with-flake8)=
-
-## Linting with Flake8
-
-[Flake8] is an extensible linter framework for Python,
-and a command-line utility to run the linters on your source code.
-The {{ HPC }} integrates Flake8 via a [pre-commit] hook,
-see the section [The Flake8 hook](the-flake8-hook).
-
-The configuration file for Flake8 and its extensions
-is named `.flake8` and located in the project directory.
-For details about the configuration file, see the [official reference][flake8 configuration].
-
-The sections below describe the linters in more detail.
-Each section also notes any configuration settings applied by the {{ HPC }}.
-
-### Overview of available plugins
-
-Flake8 comes with a rich ecosystem of plugins.
-The following table lists the Flake8 plugins used by the {{ HPC }},
-and links to their lists of error codes.
-
-:::{list-table} Flake8 plugins
-:widths: auto
-
-- - [pyflakes]
-  - Find invalid Python code
-  - [F][pyflakes codes]
-- - [pycodestyle]
-  - Enforce style conventions from [PEP 8]
-  - [E,W][pycodestyle codes]
-- - [pep8-naming]
-  - Enforce naming conventions from [PEP 8]
-  - [N][pep8-naming codes]
-- - [pydocstyle] / [flake8-docstrings]
-  - Enforce docstring conventions from [PEP 257]
-  - [D][pydocstyle codes]
-- - [flake8-rst-docstrings]
-  - Find invalid [reStructuredText] in docstrings
-  - [RST][flake8-rst-docstrings codes]
-- - [flake8-bugbear]
-  - Detect bugs and design problems
-  - [B][flake8-bugbear codes]
-- - [mccabe]
-  - Limit the code complexity
-  - [C][mccabe codes]
-- - [darglint]
-  - Detect inaccurate docstrings
-  - [DAR][darglint codes]
-- - [Bandit] / [flake8-bandit]
-  - Detect common security issues
-  - [S][bandit codes]
-
-:::
-
-### pyflakes
-
-[pyflakes] parses Python source files and finds invalid code.
-Warnings reported by this tool include
-syntax errors,
-undefined names,
-unused imports or variables,
-and more.
-It is included with [Flake8] by default.
-
-[Error codes][pyflakes codes] are prefixed by `F` for "flake".
-
-### pycodestyle
-
-[pycodestyle] checks your code against the style recommendations of [PEP 8][pep 8],
-the official Python style guide.
-The tool detects
-whitespace and indentation issues,
-deprecated features,
-bare excepts,
-and much more.
-It is included with [Flake8] by default.
-
-[Error codes][pycodestyle codes] are prefixed by `W` for warnings and `E` for errors.
-
-The {{ HPC }} disables the following errors and warnings
-for compatibility with [Black] and [flake8-bugbear]:
-
-- `E203` (whitespace before `:`)
-- `E501` (line too long)
-- `W503` (line break before binary operator)
-
-### pep8-naming
-
-[pep8-naming] enforces the naming conventions from [PEP 8][pep 8].
-Examples are the use of camel case for the names of classes,
-the use of lowercase for the names of functions, arguments and variables,
-or the convention to name the first argument of methods `self`.
-
-[Error codes][pep8-naming codes] are prefixed by `N` for "naming".
-
-### pydocstyle and flake8-docstrings
-
-[pydocstyle] checks that docstrings comply with the recommendations of [PEP 257][pep 257]
-and a configurable style convention.
-It is integrated with Flake8 via the [flake8-docstrings] extension.
-Warnings range from missing docstrings to
-issues with whitespace, quoting, and docstring content.
-
-[Error codes][pydocstyle codes] are prefixed by `D` for "docstring".
-
-The {{ HPC }} selects the recommendations of the
-[Google styleguide][google docstring style].
-Here is an example of a function documented in Google style:
-
-```python
-def add(first: int, second: int) -> int:
-    """Add two integers.
-
-    Args:
-        first: The first argument.
-        second: The second argument.
-
-    Returns:
-        The sum of the arguments.
-    """
+```toml
+[tool.ruff]
+line-length = 120
+select = ["E501"]
 ```
 
-### flake8-rst-docstrings
+**2. Ignoring Rules:**
 
-[flake8-rst-docstrings] validates docstring markup as [reStructuredText].
-Docstrings must be valid reStructuredText
-because they are used by Sphinx to generate the API reference.
+To ignore a specific rule for a particular line or block of code, use # noqa comments. For instance, to ignore E501 for a long line:
+long_line = "This is a very long line that exceeds the line length limit" # noqa: E501
 
-[Error codes][flake8-rst-docstrings codes] are prefixed by `RST` for "reStructuredText",
-and group issues into numerical blocks, by their severity and origin.
+```python
+long_line = "This is a very long line that exceeds the line length limit"  # noqa: E501
+```
 
-### flake8-bugbear
+**3. Excluding Files and Directories:**
 
-[flake8-bugbear] detects bugs and design problems.
-The warnings are more opinionated than those of pyflakes or pycodestyle.
-For example,
-the plugin detects Python 2 constructs which have been removed in Python 3,
-and likely bugs such as function arguments defaulting to empty lists or dictionaries.
+You can exclude specific files or directories from Ruff's analysis using the exclude option. This is useful for ignoring third-party code or generated files.
 
-[Error codes][flake8-bugbear codes] are prefixed by `B` for "bugbear".
+```toml
+[tool.ruff]
+exclude = [
+    "path/to/exclude/*",
+    "another/file.py",
+]
+```
 
-The {{ HPC }} also enables Bugbear's `B9` warnings,
-which are disabled by default.
-In particular, `B950` checks the maximum line length
-like [pycodestyle]'s `E501`,
-but with a tolerance margin of 10%.
-This soft limit is set to 80 characters,
-which is the value used by the Black code formatter.
+**4. Per-File Configuration:**
+For more granular control, you can define per-file configurations using # ruff: noqa comments at the top of a file. This allows you to disable specific rules or adjust settings for that file only.
 
-### mccabe
+5. Extending Ruff:
 
-[mccabe] checks the [code complexity][cyclomatic complexity]
-of your Python package against a configured limit.
-The tool is included with [Flake8].
+Ruff supports plugins that extend its functionality. You can add plugins to your project to integrate with other tools or enforce custom coding standards.
 
-[Error codes][mccabe codes] are prefixed by `C` for "complexity".
-
-The {{ HPC }} limits code complexity to a value of 10.
-
-(darglint-integration)=
-
-### darglint
-
-[darglint] checks that docstring descriptions match function definitions.
-The tool has its own configuration file, named `.darglint`.
-
-[Error codes][darglint codes] are prefixed by `DAR` for "darglint".
-
-The {{ HPC }} allows one-line docstrings without function signatures.
-Multi-line docstrings must
-specify the function signatures completely and correctly,
-using [Google docstring style].
-
-### Bandit
-
-[Bandit] is a tool designed to
-find common security issues in Python code,
-and integrated via the [flake8-bandit] extension.
-
-[Error codes][bandit codes] are prefixed by `S` for "security".
-(The prefix `B` for "bandit" is used
-when Bandit is run as a stand-alone tool.)
-
-The {{ HPC }} disables `S101` (use of assert) for the test suite,
-as [pytest] uses assertions to verify expectations in tests.
+For a complete list of available rules, configuration options, and plugin information, refer to the official [ruff] documentation.
 
 (type-checking-with-mypy)=
 
@@ -2087,7 +1855,7 @@ It manages the following dependencies:
   - Managed files
   - See also
 - - Python
-  - `poetry.lock`
+  - `project.lock`
   - [Managing dependencies](managing-dependencies)
 - - Python
   - `docs/requirements.txt`
@@ -2127,13 +1895,13 @@ Your documentation now has a public URL like this:
 The configuration for Read the Docs is included in the repository,
 in the file [.readthedocs.yml].
 The {{ HPC }} configures Read the Docs
-to build and install the package with Poetry,
+to build and install the package with uv,
 using a so-called [PEP 517][pep 517]-build.
 
 Build dependencies for the documentation
 are installed using a [requirements file] located at `docs/requirements.txt`.
 Read the Docs currently does not support
-installing development dependencies using Poetry's lock file.
+installing development dependencies using uv's lock file.
 For the sake of brevity and maintainability,
 only direct dependencies are included.
 
@@ -2141,7 +1909,7 @@ only direct dependencies are included.
 The requirements file is managed by [Dependabot](dependabot-integration).
 When newer versions of the build dependencies become available,
 Dependabot updates the requirements file and submits a pull request.
-When adding or removing Sphinx extensions using Poetry,
+When adding or removing Sphinx extensions using uv,
 don't forget to update the requirements file as well.
 :::
 
@@ -2241,7 +2009,7 @@ GitHub Actions workflows install the following tools:
 
 - [pip]
 - [virtualenv]
-- [Poetry]
+- [uv]
 - [Nox]
 
 These dependencies are pinned using a [constraints file]
@@ -2419,22 +2187,22 @@ $ nox -r
 
 ### How to run your code
 
-First, install the project and its dependencies to the Poetry environment:
+First, install the project and its dependencies to the uv environment:
 
 ```console
-$ poetry install
+$ uv pip install
 ```
 
 Run an interactive session in the environment:
 
 ```console
-$ poetry run python
+$ uv run python
 ```
 
 Invoke the command-line interface of your package:
 
 ```console
-$ poetry run <project>
+$ uv run <project>
 ```
 
 ### How to make code changes
@@ -2529,7 +2297,7 @@ Releases are triggered by a version bump on the default branch.
 It is recommended to do this in a separate pull request:
 
 1. Switch to a branch.
-2. Bump the version using [poetry version].
+2. Bump the version using [uv bump].
 3. Commit and push to GitHub.
 4. Open a pull request.
 5. Merge the pull request.
@@ -2538,7 +2306,7 @@ The individual steps for bumping the version are:
 
 ```console
 $ git switch --create release main
-$ poetry version <version>
+$ uv bump <version>
 $ git commit --message="<project> <version>" pyproject.toml
 $ git push origin release
 ```
@@ -2582,7 +2350,7 @@ You can also read the articles on [this blog][hypermodern python blog].
 [.github/dependabot.yml]: https://docs.github.com/en/github/administering-a-repository/configuration-options-for-dependency-updates
 [.gitignore]: https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository#_ignoring
 [.readthedocs.yml]: https://docs.readthedocs.io/en/stable/config-file/v2.html
-[2022.6.3]: https://github.com/cjolowicz/cookiecutter-hypermodern-python/releases/tag/2022.6.3
+[2024.11.23]: https://github.com/bosd/cookiecutter-uv-hypermodern-python/releases/tag/2024.11.23
 [__main__]: https://docs.python.org/3/library/__main__.html
 [abstract syntax tree]: https://docs.python.org/3/library/ast.html
 [actions/cache]: https://github.com/actions/cache
@@ -2591,7 +2359,6 @@ You can also read the articles on [this blog][hypermodern python blog].
 [actions/setup-python]: https://github.com/actions/setup-python
 [actions/upload-artifact]: https://github.com/actions/upload-artifact
 [autodoc]: https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
-[bandit codes]: https://bandit.readthedocs.io/en/latest/plugins/index.html#complete-test-plugin-listing
 [bandit]: https://github.com/PyCQA/bandit
 [bash]: https://www.gnu.org/software/bash/
 [batchelder include]: https://nedbatchelder.com/blog/202008/you_should_include_your_tests_in_coverage.html
@@ -2615,7 +2382,6 @@ You can also read the articles on [this blog][hypermodern python blog].
 [cupper]: https://github.com/senseyeio/cupper
 [curl]: https://curl.haxx.se
 [cyclomatic complexity]: https://en.wikipedia.org/wiki/Cyclomatic_complexity
-[darglint codes]: https://github.com/terrencepreilly/darglint#error-codes
 [darglint]: https://github.com/terrencepreilly/darglint
 [dependabot docs]: https://docs.github.com/en/github/administering-a-repository/keeping-your-dependencies-updated-automatically
 [dependabot issue 4435]: https://github.com/dependabot/dependabot-core/issues/4435
@@ -2623,13 +2389,6 @@ You can also read the articles on [this blog][hypermodern python blog].
 [dev-prod parity]: https://12factor.net/dev-prod-parity
 [editable install]: https://pip.pypa.io/en/stable/cli/pip_install/#install-editable
 [end-of-file-fixer]: https://github.com/pre-commit/pre-commit-hooks#end-of-file-fixer
-[flake8 configuration]: https://flake8.pycqa.org/en/latest/user/configuration.html
-[flake8-bandit]: https://github.com/tylerwince/flake8-bandit
-[flake8-bugbear codes]: https://github.com/PyCQA/flake8-bugbear#list-of-warnings
-[flake8-bugbear]: https://github.com/PyCQA/flake8-bugbear
-[flake8-docstrings]: https://gitlab.com/pycqa/flake8-docstrings
-[flake8-rst-docstrings codes]: https://github.com/peterjc/flake8-rst-docstrings#flake8-validation-codes
-[flake8-rst-docstrings]: https://github.com/peterjc/flake8-rst-docstrings
 [flake8]: http://flake8.pycqa.org
 [furo]: https://pradyunsg.me/furo/
 [future imports]: https://docs.python.org/3/library/__future__.html
@@ -2652,25 +2411,18 @@ You can also read the articles on [this blog][hypermodern python blog].
 [hypermodern python chapter 4]: https://medium.com/@cjolowicz/hypermodern-python-4-typing-31bcf12314ff
 [hypermodern python chapter 5]: https://medium.com/@cjolowicz/hypermodern-python-5-documentation-13219991028c
 [hypermodern python chapter 6]: https://medium.com/@cjolowicz/hypermodern-python-6-ci-cd-b233accfa2f6
-[hypermodern python cookiecutter]: https://github.com/cjolowicz/cookiecutter-hypermodern-python
+[uv hypermodern python cookiecutter]: https://github.com/bosd/cookiecutter-uv-hypermodern-python
 [hypermodern python]: https://medium.com/@cjolowicz/hypermodern-python-d44485d9d769
 [import hook]: https://docs.python.org/3/reference/import.html#import-hooks
-[install-poetry.py]: https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py
-[isort black profile]: https://pycqa.github.io/isort/docs/configuration/black_compatibility.html
-[isort force_single_line]: https://pycqa.github.io/isort/docs/configuration/options.html#force-single-line
-[isort lines_after_imports]: https://pycqa.github.io/isort/docs/configuration/options.html#lines-after-imports
-[isort]: https://pycqa.github.io/isort/
 [jinja]: https://palletsprojects.com/p/jinja/
 [json]: https://www.json.org/
 [markdown]: https://spec.commonmark.org/current/
-[mccabe codes]: https://github.com/PyCQA/mccabe#plugin-for-flake8
 [mccabe]: https://github.com/PyCQA/mccabe
-[mit license]: https://opensource.org/licenses/MIT
+[mit license]: https://opensource.org/license/mit
 [mypy configuration]: https://mypy.readthedocs.io/en/stable/config_file.html
 [mypy]: http://mypy-lang.org/
 [myst]: https://myst-parser.readthedocs.io/
 [napoleon]: https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
-[nox-poetry]: https://nox-poetry.readthedocs.io/
 [nox]: https://nox.thea.codes/
 [package metadata]: https://packaging.python.org/en/latest/specifications/core-metadata/
 [pep 257]: http://www.python.org/dev/peps/pep-0257/
@@ -2679,21 +2431,10 @@ You can also read the articles on [this blog][hypermodern python blog].
 [pep 518]: https://www.python.org/dev/peps/pep-0518/
 [pep 561]: https://www.python.org/dev/peps/pep-0561/
 [pep 8]: http://www.python.org/dev/peps/pep-0008/
-[pep8-naming codes]: https://github.com/pycqa/pep8-naming#pep-8-naming-conventions
 [pep8-naming]: https://github.com/pycqa/pep8-naming
 [pip install]: https://pip.pypa.io/en/stable/reference/pip_install/
 [pip]: https://pip.pypa.io/
 [pipx]: https://pipxproject.github.io/pipx/
-[poetry add]: https://python-poetry.org/docs/cli/#add
-[poetry env]: https://python-poetry.org/docs/managing-environments/
-[poetry export]: https://python-poetry.org/docs/cli/#export
-[poetry install]: https://python-poetry.org/docs/cli/#install
-[poetry remove]: https://python-poetry.org/docs/cli/#remove
-[poetry run]: https://python-poetry.org/docs/cli/#run
-[poetry show]: https://python-poetry.org/docs/cli/#show
-[poetry update]: https://python-poetry.org/docs/cli/#update
-[poetry version]: https://python-poetry.org/docs/cli/#version
-[poetry]: https://python-poetry.org/
 [pre-commit autoupdate]: https://pre-commit.com/#pre-commit-autoupdate
 [pre-commit configuration]: https://pre-commit.com/#adding-pre-commit-plugins-to-your-project
 [pre-commit repository-local hooks]: https://pre-commit.com/#repository-local-hooks
@@ -2701,37 +2442,34 @@ You can also read the articles on [this blog][hypermodern python blog].
 [pre-commit-hooks]: https://github.com/pre-commit/pre-commit-hooks
 [pre-commit]: https://pre-commit.com/
 [prettier]: https://prettier.io/
-[pycodestyle codes]: https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
 [pycodestyle]: https://pycodestyle.pycqa.org/en/latest/
-[pydocstyle codes]: http://www.pydocstyle.org/en/stable/error_codes.html
 [pydocstyle]: http://www.pydocstyle.org/
 [pyenv wiki]: https://github.com/pyenv/pyenv/wiki/Common-build-problems
 [pyenv]: https://github.com/pyenv/pyenv
-[pyflakes codes]: https://flake8.pycqa.org/en/latest/user/error-codes.html
 [pyflakes]: https://github.com/PyCQA/pyflakes
 [pygments]: https://pygments.org/
 [pypa/gh-action-pypi-publish]: https://github.com/pypa/gh-action-pypi-publish
 [pypi]: https://pypi.org/
-[pyproject.toml]: https://python-poetry.org/docs/pyproject/
-[pytest layout]: https://docs.pytest.org/en/latest/explanation/goodpractices.html#choosing-a-test-layout-import-rules
+[pyproject.toml]: https://docs.astral.sh/uv/pip/dependencies/#using-pyprojecttoml
+[pytest layout]: https://docs.pytest.org/en/latest/explanation/goodpractices.html#choosing-a-test-layout
 [pytest]: https://docs.pytest.org/en/latest/
-[python build]: https://python-poetry.org/docs/cli/#build
-[python package]: https://docs.python.org/3/tutorial/modules.html#packages
-[python publish]: https://python-poetry.org/docs/cli/#publish
+[python build]: https://docs.astral.sh/uv/concepts/projects/build/
+[python package]: https://docs.astral.sh/uv/reference/build_failures/#why-does-uv-build-a-package
+[python publish]: https://docs.astral.sh/uv/guides/publish/
 [python website]: https://www.python.org/
 [pyupgrade]: https://github.com/asottile/pyupgrade
 [read the docs]: https://readthedocs.org/
-[readthedocs webhooks]: https://docs.readthedocs.io/en/stable/webhooks.html
+[readthedocs webhooks]: https://docs.readthedocs.io/en/stable/guides/build/webhooks.html
 [relative imports]: https://docs.python.org/3/reference/import.html#package-relative-imports
 [release drafter]: https://github.com/release-drafter/release-drafter
 [release-drafter/release-drafter]: https://github.com/release-drafter/release-drafter
-[requirements file]: https://pip.readthedocs.io/en/stable/user_guide/#requirements-files
+[requirements file]: https://pip.pypa.io/en/stable/user_guide/#requirements-files
 [restructuredtext]: https://docutils.sourceforge.io/rst.html
+[ruff]: https://github.com/astral-sh/ruff
 [safety]: https://github.com/pyupio/safety
 [salsify/action-detect-and-tag-new-version]: https://github.com/salsify/action-detect-and-tag-new-version
 [schlawack semantic]: https://hynek.me/articles/semver-will-not-save-you/
 [schreiner constraints]: https://iscinumpy.dev/post/bound-version-constraints/
-[schreiner poetry]: https://iscinumpy.dev/post/poetry-versions/
 [semantic versioning]: https://semver.org/
 [sphinx configuration]: https://www.sphinx-doc.org/en/master/usage/configuration.html
 [sphinx-autobuild]: https://github.com/executablebooks/sphinx-autobuild
@@ -2745,7 +2483,9 @@ You can also read the articles on [this blog][hypermodern python blog].
 [type annotations]: https://docs.python.org/3/library/typing.html
 [typeguard]: https://github.com/agronholm/typeguard
 [unix-style line endings]: https://en.wikipedia.org/wiki/Newline
-[versions and constraints]: https://python-poetry.org/docs/dependency-specification/
+[uv]: https://docs.astral.sh/uv/
+[uv bump]: https://docs.astral.sh/uv/reference/cli/
+[versions and constraints]: https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-specifiers-pep-508
 [virtual environment]: https://docs.python.org/3/tutorial/venv.html
 [virtualenv]: https://virtualenv.pypa.io/
 [wheel]: https://www.python.org/dev/peps/pep-0427/
